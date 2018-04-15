@@ -10,7 +10,7 @@ Firstly, I've used `mix` to setup the project structure:
 $ mix mix new tweetrelay
 ```
 
-`[mix](https://hexdocs.pm/mix/Mix.html)` is the official build tool of Elixir.
+[mix](https://hexdocs.pm/mix/Mix.html) is the official build tool of Elixir.
 With `mix new` you're able to create a new Elixir app scaffolder.
 
 Then, I've configured the application using the `config/config.exs` file, that is used from the main application to load specific configurations.
