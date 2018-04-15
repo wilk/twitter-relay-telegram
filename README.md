@@ -7,7 +7,7 @@ Feel free to improve source code and docs.
 Firstly, I've used `mix` to setup the project structure:
 
 ```bash
-$ mix mix new tweetrelay
+$ mix new tweetrelay
 ```
 
 [mix](https://hexdocs.pm/mix/Mix.html) is the official build tool of Elixir.
