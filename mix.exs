@@ -15,14 +15,16 @@ defmodule TweetRelay.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {TweetRelay, []}
+      mod: {TweetRelay, []},
+      applications: [:nadia]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:extwitter, "~> 0.9.2"}
+      {:extwitter, "~> 0.9.2"},
+      {:nadia, "~> 0.4.3"}
     ]
   end
 end

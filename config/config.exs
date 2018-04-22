@@ -35,3 +35,6 @@ config :extwitter, :oauth, [
    access_token: System.get_env("TWITTER_ACCESS_TOKEN"),
    access_token_secret: System.get_env("TWITTER_ACCESS_SECRET")
 ]
+
+config :nadia, token: System.get_env("TELEGRAM_BOT_TOKEN")
+config :nadia, chat_id: System.get_env("TELEGRAM_BOT_CHAT_ID")

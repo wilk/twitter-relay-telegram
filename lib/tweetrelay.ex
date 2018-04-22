@@ -1,14 +1,11 @@
 defmodule TweetRelay do
-  def start(_type, _args) do
-    # List all child processes to be supervised
-    children = [
-      # Starts a worker by calling: A.Worker.start_link(arg)
-      # {A.Worker, arg},
-    ]
+  use Application
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: A.Supervisor]
-    Supervisor.start_link(children, opts)
+  def start(_type, _args) do
+    a = ExTwitter.search("@rep_tecno", [count: 5])
+      |> Enum.map(fn(tweet) -> tweet.text end)
+      |> Enum.join("\n-----\n")
+    Nadia.send_message(Application.get_env(:nadia, :chat_id), a)
+    Task.start(fn -> :timer.sleep(1000) end)
   end
 end
