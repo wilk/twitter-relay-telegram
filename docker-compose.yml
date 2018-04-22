@@ -3,7 +3,9 @@ version: '3'
 services:
   app:
     command: "mix run"
-    image: elixir:1.6.4-alpine
+    image: telegram-bot-relayer
+    build:
+      context: .
     working_dir: /opt/app
     volumes:
       - ./:/opt/app
