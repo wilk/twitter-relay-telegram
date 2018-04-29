@@ -3,6 +3,22 @@ This is an application implemented by myself to learn and understand Elixir.
 It's meant to be used as a tutorial for beginners.
 Feel free to improve source code and docs.
 
+## Setup
+First, rename `.env.default` in `.env`:
+
+```bash
+$ mv .env.default .env
+```
+
+Then, replace the default vars with your credentials (Twitter and Telegram)
+
+## Running
+Just use `docker-compose` to run it:
+
+```bash
+$ docker-compose up
+```
+
 ## Tutorial
 Firstly, I've used `mix` to setup the project structure:
 

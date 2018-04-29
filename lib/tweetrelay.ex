@@ -1,15 +1,9 @@
 defmodule TweetRelay do
-  use GenServer, restart: :permanent, shutdown: 10_000
-
-  children = [
-    {TweetRelay, [:init]}
-  ]
+  use GenServer
 
   def start(:normal, args) do
-    IO.puts "meh"
-    {:ok, state} = GenServer.start_link(__MODULE__, args)
-    IO.puts "kgh"
-    {:ok, state}
+    IO.puts "start"
+    GenServer.start_link(__MODULE__, args)
   end
 
   # client
@@ -19,14 +13,17 @@ defmodule TweetRelay do
     {:ok, state}
   end
 
-  def schedule_work() do
+  defp schedule_work() do
     IO.puts "MMM"
-    Process.send_after(self(), :work, 10000)
+    #Process.send_after(self(), :work, 2000)
+    :timer.sleep(10000)
+    handle_info(:work, self())
   end
 
   # server
   def handle_info(:work, state) do
     IO.puts "HANDLE"
+
     a = ExTwitter.search("@rep_tecno", [count: 5])
       |> Enum.map(fn(tweet) -> tweet.text end)
       |> Enum.join("\n-----\n")
