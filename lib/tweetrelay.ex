@@ -8,21 +8,19 @@ defmodule TweetRelay do
 
   # client
   def init(state) do
-    IO.puts "wat"
+    IO.puts "init"
     schedule_work()
     {:ok, state}
   end
 
   defp schedule_work() do
-    IO.puts "MMM"
-    #Process.send_after(self(), :work, 2000)
-    :timer.sleep(10000)
-    handle_info(:work, self())
+    IO.puts "schedule_work"
+    Process.send_after(self(), :work, 2000)
   end
 
   # server
   def handle_info(:work, state) do
-    IO.puts "HANDLE"
+    IO.puts "handle_info"
 
     a = ExTwitter.search("@rep_tecno", [count: 5])
       |> Enum.map(fn(tweet) -> tweet.text end)

@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    command: "mix run"
+    command: "mix run --no-halt"
     image: telegram-bot-relayer
     build:
       context: .
