@@ -40,6 +40,12 @@ defmodule TweetRelay do
     #  |> Enum.join("\n-----\n")
     #Nadia.send_message(Application.get_env(:nadia, :chat_id), result)
 
+    # todo: parse the following commands
+    # /follow : add someone to the followers list
+    # /unfollow : remove someone from the followers list
+    # /list : list who you're following
+    # /digest [amount = 1] : get the last tweets grouped by followers
+
     {:ok, updates} =  Nadia.get_updates([limit: 1, offset: state[:last_command].update_id+ 1])
     #Enum.map(updates, fn(update) -> IO.inspect update end)
     #IO.inspect commands
