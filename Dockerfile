@@ -1,10 +1,10 @@
-FROM elixir:1.6.4-alpine
+FROM elixir:1.6.5-alpine
 
 # force install hex locally (used to install deps)
 RUN mix local.hex --force
 
 WORKDIR /opt/app
-COPY . /opt/app
+COPY . .
 
 # install deps
 RUN mix deps.get
