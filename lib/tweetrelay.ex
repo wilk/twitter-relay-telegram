@@ -25,7 +25,7 @@ defmodule TweetRelay do
 
   defp schedule_work() do
     IO.puts "schedule_work"
-    Process.send_after(self(), :work, 1000)
+    #Process.send_after(self(), :work, 1000)
   end
 
   # server
@@ -46,9 +46,29 @@ defmodule TweetRelay do
     # /list : list who you're following
     # /digest [amount = 1] : get the last tweets grouped by followers
 
+    # todo: update to the last telegram message
     {:ok, updates} =  Nadia.get_updates([limit: 1, offset: state[:last_command].update_id+ 1])
+    #case Nadia.get_updates([limit: 1, offset: state[:last_command].update_id+ 1]) do
+    #  {:ok, updates} -> updates
+    #  {:error} -> :error
+    #end
     #Enum.map(updates, fn(update) -> IO.inspect update end)
     #IO.inspect commands
+
+    case message do
+      "/list" -> TweetRelay.display_list()
+      String.starts_with?(message, "/follow") -> String.replace(message, "/follow", "")
+        |> String.replace(" ", "")
+        |> String.split(",")
+        |> TweetRelay.follow()
+      String.starts_with?(message, "/unfollow") -> String.replace(message, "/unfollow", "")
+        |> String.replace(" ", "")
+        |> String.split(",")
+        |> TweetRelay.unfollow()
+      String.starts_with?(message, "/digest") -> String.replace(message, "digest", "")
+        |> String.replace(" ", "")
+        |> TweetRelay.digest()
+    end
 
     {:ok, last_command} = Enum.fetch(updates, 0)
     IO.puts last_command.message.text
@@ -62,5 +82,21 @@ defmodule TweetRelay do
 
     schedule_work()
     {:noreply, state}
+  end
+
+  def display_list() do
+    # todo: display followers list
+  end
+
+  def follow(interests) do
+    # todo: follow a list of interests
+  end
+
+  def unfollow(interests) do
+    # todo: unfollow a list of interests
+  end
+
+  def digest(amount=5) do
+    # todo: send first $amount tweets in a digest form
   end
 end
