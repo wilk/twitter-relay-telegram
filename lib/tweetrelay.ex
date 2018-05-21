@@ -80,9 +80,9 @@ defmodule TweetRelay do
            |> String.replace(" ", "")
            |> String.split(",")
            |> unfollow(state)
-        # String.starts_with?(message, "/digest") -> String.replace(message, "digest", "")
-        #   |> String.replace(" ", "")
-        #   |> TweetRelay.digest()
+        String.starts_with?(command.message.text, "/digest") -> String.replace(command.message.text, "/digest", "")
+           |> String.replace(" ", "")
+           |> digest(state)
       end
 
       flush_updates(updates)
@@ -121,7 +121,12 @@ defmodule TweetRelay do
     state -- interests
   end
 
-  defp digest(amount=5) do
+  defp digest(_, state) do
+    IO.puts "meh"
     # todo: send first $amount tweets in a digest form
+    state
+      |> Enum.map(fn(interest) -> Task.async(fn -> ExTwitter.search(interest, [count: 5]) end) end)
+      |> Enum.map(fn(task) -> Task.await(task) end)
+      |> Enum.map(fn(tweet) -> IO.puts(tweet.text) end)
   end
 end
