@@ -55,7 +55,11 @@ defmodule TweetRelay do
     # /digest [amount = 1] : get the last tweets grouped by followers
 
     # todo: update to the last telegram message
-    {:ok, updates} =  Nadia.get_updates([limit: 1])
+    updates = case Nadia.get_updates([limit: 1]) do
+      {:ok, updates} -> updates
+      {:error, _} -> []
+    end
+    #{:ok, updates} =  Nadia.get_updates([limit: 1])
     #case Nadia.get_updates([limit: 1, offset: state[:last_command].update_id+ 1]) do
     #  {:ok, updates} -> updates
     #  {:error} -> :error
@@ -66,16 +70,16 @@ defmodule TweetRelay do
     if (Kernel.length(updates) > 0) do
       command = Enum.at(updates, 0)
 
-      case command.message.text do
-        "/list" -> display_list(state)
-        # String.starts_with?(message, "/follow") -> String.replace(message, "/follow", "")
-        #   |> String.replace(" ", "")
-        #   |> String.split(",")
-        #   |> TweetRelay.follow()
-        # String.starts_with?(message, "/unfollow") -> String.replace(message, "/unfollow", "")
-        #   |> String.replace(" ", "")
-        #   |> String.split(",")
-        #   |> TweetRelay.unfollow()
+      cond do
+        command.message.text === "/list" -> display_list(state)
+        String.starts_with?(command.message.text, "/follow") -> state = String.replace(command.message.text, "/follow", "")
+           |> String.replace(" ", "")
+           |> String.split(",")
+           |> follow(state)
+        String.starts_with?(command.message.text, "/unfollow") -> state = String.replace(command.message.text, "/unfollow", "")
+           |> String.replace(" ", "")
+           |> String.split(",")
+           |> unfollow(state)
         # String.starts_with?(message, "/digest") -> String.replace(message, "digest", "")
         #   |> String.replace(" ", "")
         #   |> TweetRelay.digest()
@@ -99,21 +103,22 @@ defmodule TweetRelay do
   end
 
   defp display_list(state) do
-    # todo: display followers list
-    message = "You're following no one. Type \"/follow @__wilkyz__\" to follow someone."
+    message = 
     if (Kernel.length(state) > 0) do
-      message = Enum.join(state, ", ")
+      Enum.join(state, ", ")
+    else
+      "You're following no one. Type \"/follow @__wilkyz__\" to follow someone."
     end
 
     Nadia.send_message(Application.get_env(:nadia, :chat_id), message)
   end
 
   defp follow(interests, state) do
-    # todo: follow a list of interests
+    state ++ interests
   end
 
-  defp unfollow(interests) do
-    # todo: unfollow a list of interests
+  defp unfollow(interests, state) do
+    state -- interests
   end
 
   defp digest(amount=5) do
