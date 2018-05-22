@@ -103,7 +103,7 @@ defmodule TweetRelay do
   end
 
   defp display_list(state) do
-    message = 
+    message =
     if (Kernel.length(state) > 0) do
       Enum.join(state, ", ")
     else
@@ -127,6 +127,10 @@ defmodule TweetRelay do
     state
       |> Enum.map(fn(interest) -> Task.async(fn -> ExTwitter.search(interest, [count: 5]) end) end)
       |> Enum.map(fn(task) -> Task.await(task) end)
-      |> Enum.map(fn(tweet) -> IO.puts(tweet.text) end)
+      |> Enum.map(fn(tweets) ->
+        tweets
+          |> Enum.map_join("\n", fn(tweet) -> tweet.text end)
+      end)
+      |> Enum.map(fn(news) -> IO.puts(news) end)
   end
 end
