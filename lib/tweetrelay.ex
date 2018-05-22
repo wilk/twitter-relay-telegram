@@ -107,7 +107,7 @@ defmodule TweetRelay do
     if (Kernel.length(state) > 0) do
       Enum.join(state, ", ")
     else
-      "You're following no one. Type \"/follow @__wilkyz__\" to follow someone."
+      "You're following no one. Type \"/follow @__wilky__\" to follow someone."
     end
 
     Nadia.send_message(Application.get_env(:nadia, :chat_id), message)
@@ -124,13 +124,24 @@ defmodule TweetRelay do
   defp digest(_, state) do
     IO.puts "meh"
     # todo: send first $amount tweets in a digest form
-    state
+    newsList = state
       |> Enum.map(fn(interest) -> Task.async(fn -> ExTwitter.search(interest, [count: 5]) end) end)
       |> Enum.map(fn(task) -> Task.await(task) end)
       |> Enum.map(fn(tweets) ->
-        tweets
-          |> Enum.map_join("\n", fn(tweet) -> tweet.text end)
+        tweets |> Enum.map_join("\n", fn(tweet) -> tweet.text end)
       end)
-      |> Enum.map(fn(news) -> IO.puts(news) end)
+
+      IO.puts newsList
+
+      digestMessage = 0..(length(newsList) - 1)
+        |> Stream.zip(newsList)
+        |> Enum.map_join("\n", fn({k, v}) ->
+          interest = Enum.at(state, k)
+          "news from " <> interest <> "\n" <> v
+        end)
+
+      IO.puts(digestMessage)
+
+      state
   end
 end
