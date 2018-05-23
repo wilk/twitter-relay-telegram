@@ -13,7 +13,7 @@ defmodule TweetRelay do
 
     IO.inspect Nadia.get_me
     {:ok, updates} =  Nadia.get_updates([limit: 100])
-    if Kernel.length(updates) > 0 do
+    if length(updates) > 0 do
       flush_updates(updates)
     end
 
@@ -21,12 +21,12 @@ defmodule TweetRelay do
     {:ok, state}
   end
 
-  defp flush_updates(list) when Kernel.length(list) == 0 do
+  defp flush_updates(list) when length(list) == 0 do
     IO.puts "emptied list, no more unread messages"
   end
 
   defp flush_updates(list) do
-    last_command = Enum.at(list, Kernel.length(list) - 1)
+    last_command = Enum.at(list, length(list) - 1)
     {:ok, updates} =  Nadia.get_updates([limit: 1, offset: last_command.update_id+1])
     flush_updates(updates)
   end
@@ -38,65 +38,44 @@ defmodule TweetRelay do
 
   # server
   def handle_info(:work, state) do
-    #IO.inspect state
-    #a = :dets.lookup(state[:table], "meh")
-    #IO.inspect a
     IO.puts "handle_info"
 
-    #result = ExTwitter.search("@rep_tecno", [count: 5])
-    #  |> Enum.map(fn(tweet) -> IO.inspect tweet; tweet.text end)
-    #  |> Enum.join("\n-----\n")
-    #Nadia.send_message(Application.get_env(:nadia, :chat_id), result)
-
-    # todo: parse the following commands
-    # /follow : add someone to the followers list
-    # /unfollow : remove someone from the followers list
-    # /list : list who you're following
-    # /digest [amount = 1] : get the last tweets grouped by followers
-
-    # todo: update to the last telegram message
     updates = case Nadia.get_updates([limit: 1]) do
       {:ok, updates} -> updates
       {:error, _} -> []
     end
-    #{:ok, updates} =  Nadia.get_updates([limit: 1])
-    #case Nadia.get_updates([limit: 1, offset: state[:last_command].update_id+ 1]) do
-    #  {:ok, updates} -> updates
-    #  {:error} -> :error
-    #end
-    #Enum.map(updates, fn(update) -> IO.inspect update end)
-    #IO.inspect commands
 
-    if (Kernel.length(updates) > 0) do
+    if (length(updates) > 0) do
       command = Enum.at(updates, 0)
 
       cond do
         command.message.text === "/list" -> display_list(state)
-        String.starts_with?(command.message.text, "/follow") -> state = String.replace(command.message.text, "/follow", "")
+        String.starts_with?(command.message.text, "/follow") ->
+          followersList = String.replace(command.message.text, "/follow", "")
+          state = followersList
            |> String.replace(" ", "")
            |> String.split(",")
            |> follow(state)
-        String.starts_with?(command.message.text, "/unfollow") -> state = String.replace(command.message.text, "/unfollow", "")
-           |> String.replace(" ", "")
-           |> String.split(",")
-           |> unfollow(state)
-        String.starts_with?(command.message.text, "/digest") -> String.replace(command.message.text, "/digest", "")
-           |> String.replace(" ", "")
-           |> digest(state)
+
+          Nadia.send_message(Application.get_env(:nadia, :chat_id), "followed " <> followersList)
+        String.starts_with?(command.message.text, "/unfollow") ->
+          followersList = String.replace(command.message.text, "/unfollow", "")
+          state = followersList
+            |> String.replace(" ", "")
+            |> String.split(",")
+            |> unfollow(state)
+
+           Nadia.send_message(Application.get_env(:nadia, :chat_id), "unfollowed " <> followersList)
+        String.starts_with?(command.message.text, "/digest") ->
+          tweets = String.replace(command.message.text, "/digest", "")
+            |> String.replace(" ", "")
+            |> digest(state)
+
+          Nadia.send_message(Application.get_env(:nadia, :chat_id), tweets)
       end
 
       flush_updates(updates)
     end
-
-    #{:ok, last_command} = Enum.fetch(updates, 0)
-    #IO.puts last_command.message.text
-    #IO.puts state[:last_command].message.text
-    #IO.puts last_command.update_id
-
-    #if last_command.message.message_id != state[:last_command].message.message_id do
-      #Nadia.send_message(Application.get_env(:nadia, :chat_id), last_command.message.text)
-      #state = Map.put(state, :last_command, last_command)
-    #end
 
     schedule_work()
     {:noreply, state}
@@ -104,7 +83,7 @@ defmodule TweetRelay do
 
   defp display_list(state) do
     message =
-    if (Kernel.length(state) > 0) do
+    if (length(state) > 0) do
       Enum.join(state, ", ")
     else
       "You're following no one. Type \"/follow @__wilky__\" to follow someone."
@@ -122,8 +101,6 @@ defmodule TweetRelay do
   end
 
   defp digest(_, state) do
-    IO.puts "meh"
-    # todo: send first $amount tweets in a digest form
     newsList = state
       |> Enum.map(fn(interest) -> Task.async(fn -> ExTwitter.search(interest, [count: 5]) end) end)
       |> Enum.map(fn(task) -> Task.await(task) end)
@@ -131,17 +108,11 @@ defmodule TweetRelay do
         tweets |> Enum.map_join("\n", fn(tweet) -> tweet.text end)
       end)
 
-      IO.puts newsList
-
-      digestMessage = 0..(length(newsList) - 1)
+      0..(length(newsList) - 1)
         |> Stream.zip(newsList)
         |> Enum.map_join("\n", fn({k, v}) ->
           interest = Enum.at(state, k)
           "news from " <> interest <> "\n" <> v
         end)
-
-      IO.puts(digestMessage)
-
-      state
   end
 end
