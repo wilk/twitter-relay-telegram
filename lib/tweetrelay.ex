@@ -93,11 +93,15 @@ defmodule TweetRelay do
   end
 
   defp follow(interests, state) do
-    state ++ interests
+    new = Enum.filter(interests, fn(interest) -> !Enum.member?(state, interest) end)
+
+    state ++ new
   end
 
   defp unfollow(interests, state) do
-    state -- interests
+    existing = Enum.filter(interests, fn(interest) -> Enum.member?(state, interest) end)
+
+    state -- existing
   end
 
   defp digest(_, state) do
@@ -105,7 +109,10 @@ defmodule TweetRelay do
       |> Enum.map(fn(interest) -> Task.async(fn -> ExTwitter.search(interest, [count: 5]) end) end)
       |> Enum.map(fn(task) -> Task.await(task) end)
       |> Enum.map(fn(tweets) ->
-        tweets |> Enum.map_join("\n", fn(tweet) -> tweet.text end)
+        tweets |> Enum.map_join("\n", fn(tweet) ->
+          IO.inspect(tweet)
+          tweet.text
+        end)
       end)
 
       0..(length(newsList) - 1)
