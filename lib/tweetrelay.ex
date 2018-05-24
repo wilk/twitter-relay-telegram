@@ -49,7 +49,9 @@ defmodule TweetRelay do
       command = Enum.at(updates, 0)
 
       cond do
-        command.message.text === "/list" -> display_list(state)
+        command.message.text === "/list" ->
+          message = get_list_response(state)
+          Nadia.send_message(command.message.chat.id, message)
         String.starts_with?(command.message.text, "/follow") ->
           followersList = String.replace(command.message.text, "/follow", "")
           state = followersList
@@ -57,7 +59,7 @@ defmodule TweetRelay do
            |> String.split(",")
            |> follow(state)
 
-          Nadia.send_message(Application.get_env(:nadia, :chat_id), "followed " <> followersList)
+          Nadia.send_message(command.message.chat.id, "followed: " <> followersList)
         String.starts_with?(command.message.text, "/unfollow") ->
           followersList = String.replace(command.message.text, "/unfollow", "")
           state = followersList
@@ -65,13 +67,11 @@ defmodule TweetRelay do
             |> String.split(",")
             |> unfollow(state)
 
-           Nadia.send_message(Application.get_env(:nadia, :chat_id), "unfollowed " <> followersList)
+           Nadia.send_message(command.message.chat.id, "unfollowed: " <> followersList)
         String.starts_with?(command.message.text, "/digest") ->
-          tweets = String.replace(command.message.text, "/digest", "")
-            |> String.replace(" ", "")
-            |> digest(state)
+          tweets = get_digest(state)
 
-          Nadia.send_message(Application.get_env(:nadia, :chat_id), tweets)
+          Nadia.send_message(command.message.chat.id, tweets)
       end
 
       flush_updates(updates)
@@ -81,15 +81,12 @@ defmodule TweetRelay do
     {:noreply, state}
   end
 
-  defp display_list(state) do
-    message =
+  defp get_list_response(state) do
     if (length(state) > 0) do
-      Enum.join(state, ", ")
+      "Following: \n" <> Enum.join(state, ", ")
     else
       "You're following no one. Type \"/follow @__wilky__\" to follow someone."
     end
-
-    Nadia.send_message(Application.get_env(:nadia, :chat_id), message)
   end
 
   defp follow(interests, state) do
@@ -104,7 +101,7 @@ defmodule TweetRelay do
     state -- existing
   end
 
-  defp digest(_, state) do
+  defp get_digest(state) do
     newsList = state
       |> Enum.map(fn(interest) -> Task.async(fn -> ExTwitter.search(interest, [count: 5]) end) end)
       |> Enum.map(fn(task) -> Task.await(task) end)
@@ -119,7 +116,7 @@ defmodule TweetRelay do
         |> Stream.zip(newsList)
         |> Enum.map_join("\n", fn({k, v}) ->
           interest = Enum.at(state, k)
-          "news from " <> interest <> "\n" <> v
+          "\n\nnews from " <> interest <> "\n\n" <> v
         end)
   end
 end
