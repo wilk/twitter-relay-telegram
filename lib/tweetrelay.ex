@@ -45,13 +45,15 @@ defmodule TweetRelay do
       {:error, _} -> []
     end
 
-    if (length(updates) > 0) do
+    state = if (length(updates) > 0) do
       command = Enum.at(updates, 0)
 
-      cond do
+      state = cond do
         command.message.text === "/list" ->
           message = get_list_response(state)
           Nadia.send_message(command.message.chat.id, message)
+
+          state
         String.starts_with?(command.message.text, "/follow") ->
           followersList = String.replace(command.message.text, "/follow", "")
           state = followersList
@@ -60,6 +62,8 @@ defmodule TweetRelay do
            |> follow(state)
 
           Nadia.send_message(command.message.chat.id, "followed: " <> followersList)
+
+          state
         String.starts_with?(command.message.text, "/unfollow") ->
           followersList = String.replace(command.message.text, "/unfollow", "")
           state = followersList
@@ -68,13 +72,18 @@ defmodule TweetRelay do
             |> unfollow(state)
 
            Nadia.send_message(command.message.chat.id, "unfollowed: " <> followersList)
+
+           state
         String.starts_with?(command.message.text, "/digest") ->
           tweets = get_digest(state)
 
           Nadia.send_message(command.message.chat.id, tweets)
+
+          state
       end
 
       flush_updates(updates)
+      state
     end
 
     schedule_work()
