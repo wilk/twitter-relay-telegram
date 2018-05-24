@@ -49,6 +49,21 @@ defmodule TweetRelay do
       command = Enum.at(updates, 0)
 
       state = cond do
+        command.message.text === "/help" ->
+          Nadia.send_message(command.message.chat.id, """
+          Hello, I'm the digest bot and I can help you crawling Twitter for you.
+
+          Following the available commands list:
+
+          /list: list all the followed interestes
+          /follow interest[,...]: start following one or more interests
+          /unfollow interest[,...]: unfollow one or more interests
+          /digest: get the last 5 tweets of the followed interests in digest format
+
+          Start by adding new interests to follow and then invoke "/digest" to see what happens!
+          """)
+
+          state
         command.message.text === "/list" ->
           message = get_list_response(state)
           Nadia.send_message(command.message.chat.id, message)
