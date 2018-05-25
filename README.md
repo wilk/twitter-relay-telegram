@@ -42,3 +42,27 @@ config :extwitter, :oauth, [
 ```
 
 Those configurations are used to configure the [ExTwitter](https://github.com/parroty/extwitter) library, used to search tweets inside Twitter's network.
+
+```elixir
+config :nadia, token: System.get_env("TELEGRAM_BOT_TOKEN")
+```
+
+While this configuration is used to configure [Nadia](https://github.com/zhyu/nadia), a library for interacting with Telegram's API.
+
+### Adding dependencies
+It's time to add some dependencies to the project, exactly those expressed above.
+It can be done by adding the following list to the `deps` method of the `MixProject` located inside `mix.exs` file:
+
+```elixir
+[
+  {:extwitter, "~> 0.9.2"},
+  {:nadia, "~> 0.4.3"}
+]
+```
+
+`mix` can be used to install the dependencies list:
+
+```bash
+
+$ mix deps.get
+```
