@@ -37,4 +37,3 @@ config :extwitter, :oauth, [
 ]
 
 config :nadia, token: System.get_env("TELEGRAM_BOT_TOKEN")
-config :nadia, chat_id: System.get_env("TELEGRAM_BOT_CHAT_ID")
