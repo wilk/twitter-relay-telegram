@@ -1,17 +1,18 @@
 defmodule TweetRelay do
   # macro "use" used to import GenServer and calling its __using__ method (GenServer.__using__())
+  # GenServer: module to implement client-server applications
   use GenServer
 
-  def start(:normal, _) do
+  # start is called by the MixProject (application method "mod")
+  def start(:normal, initial_state) do
     IO.puts "start"
-    GenServer.start_link(__MODULE__, [])
+    GenServer.start_link(__MODULE__, initial_state)
   end
 
-  # client
+  # GenServer init implementation, called by MixProject application
   def init(state) do
     IO.puts "init"
 
-    IO.inspect Nadia.get_me
     {:ok, updates} =  Nadia.get_updates([limit: 100])
     if length(updates) > 0 do
       flush_updates(updates)
@@ -37,18 +38,25 @@ defmodule TweetRelay do
   end
 
   # server
+  # handle_info receives messages sent by Process.send_after/4 and Kernel.send/2
   def handle_info(:work, state) do
     IO.puts "handle_info"
 
+    # case returns a list in both case (ok or error), ignoring errors
     updates = case Nadia.get_updates([limit: 1]) do
       {:ok, updates} -> updates
-      {:error, _} -> []
+      {:error, err} ->
+        IO.inspect(err)
+        []
     end
 
     state = if (length(updates) > 0) do
+      # it fetches the last message sent and analyze it
       command = Enum.at(updates, 0)
 
+      # cond is a set of "if" statements grouped together
       state = cond do
+        # /help check
         command.message.text === "/help" ->
           Nadia.send_message(command.message.chat.id, """
           Hello, I'm the digest bot and I can help you crawling Twitter for you.
@@ -64,11 +72,13 @@ defmodule TweetRelay do
           """)
 
           state
+        # /list check
         command.message.text === "/list" ->
           message = get_list_response(state)
           Nadia.send_message(command.message.chat.id, message)
 
           state
+        # /follow check
         String.starts_with?(command.message.text, "/follow") ->
           followersList = String.replace(command.message.text, "/follow", "")
           state = followersList
@@ -79,6 +89,7 @@ defmodule TweetRelay do
           Nadia.send_message(command.message.chat.id, "followed: " <> followersList)
 
           state
+        # /unfollow check
         String.starts_with?(command.message.text, "/unfollow") ->
           followersList = String.replace(command.message.text, "/unfollow", "")
           state = followersList
@@ -89,6 +100,7 @@ defmodule TweetRelay do
            Nadia.send_message(command.message.chat.id, "unfollowed: " <> followersList)
 
            state
+        # /digest check
         String.starts_with?(command.message.text, "/digest") ->
           tweets = get_digest(state)
 
@@ -98,6 +110,8 @@ defmodule TweetRelay do
       end
 
       flush_updates(updates)
+      state
+    else
       state
     end
 
