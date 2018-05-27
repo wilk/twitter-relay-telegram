@@ -13,7 +13,7 @@ defmodule TweetRelay do
   def init(state) do
     IO.puts "init"
 
-    {:ok, updates} =  Nadia.get_updates([limit: 100])
+    {:ok, updates} = Nadia.get_updates([limit: 100])
     if length(updates) > 0 do
       flush_updates(updates)
     end
@@ -28,7 +28,7 @@ defmodule TweetRelay do
 
   defp flush_updates(list) do
     last_command = Enum.at(list, length(list) - 1)
-    {:ok, updates} =  Nadia.get_updates([limit: 1, offset: last_command.update_id+1])
+    {:ok, updates} = Nadia.get_updates([limit: 1, offset: last_command.update_id+1])
     flush_updates(updates)
   end
 
