@@ -5,13 +5,13 @@ defmodule TweetRelay do
 
   # start is called by the MixProject (application method "mod")
   def start(:normal, initial_state) do
-    IO.puts "start"
+    IO.puts("start")
     GenServer.start_link(__MODULE__, initial_state)
   end
 
   # GenServer init implementation, called by MixProject application
   def init(state) do
-    IO.puts "init"
+    IO.puts("init")
 
     {:ok, updates} = Nadia.get_updates([limit: 100])
     if length(updates) > 0 do
@@ -23,7 +23,7 @@ defmodule TweetRelay do
   end
 
   defp flush_updates(list) when length(list) == 0 do
-    IO.puts "emptied list, no more unread messages"
+    IO.puts("emptied list, no more unread messages")
   end
 
   defp flush_updates(list) do
@@ -33,14 +33,14 @@ defmodule TweetRelay do
   end
 
   defp schedule_work() do
-    IO.puts "schedule_work"
+    IO.puts("schedule_work")
     Process.send_after(self(), :work, 1000)
   end
 
   # server
   # handle_info receives messages sent by Process.send_after/4 and Kernel.send/2
   def handle_info(:work, state) do
-    IO.puts "handle_info"
+    IO.puts("handle_info")
 
     # case returns a list in both case (ok or error), ignoring errors
     updates = case Nadia.get_updates([limit: 1]) do
