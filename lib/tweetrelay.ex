@@ -86,7 +86,7 @@ defmodule TweetRelay do
            |> String.split(",")
            |> follow(state)
 
-          Nadia.send_message(command.message.chat.id, "followed: " <> followersList)
+          Nadia.send_message(command.message.chat.id, "followed: #{followersList}")
 
           state
         # /unfollow check
@@ -97,7 +97,7 @@ defmodule TweetRelay do
             |> String.split(",")
             |> unfollow(state)
 
-           Nadia.send_message(command.message.chat.id, "unfollowed: " <> followersList)
+           Nadia.send_message(command.message.chat.id, "unfollowed: #{followersList}")
 
            state
         # /digest check
@@ -141,20 +141,23 @@ defmodule TweetRelay do
 
   defp get_digest(state) do
     newsList = state
+      # generate an array of tasks, one for each followed interest
       |> Enum.map(fn(interest) -> Task.async(fn -> ExTwitter.search(interest, [count: 5]) end) end)
+      # await for each task to be completed
       |> Enum.map(fn(task) -> Task.await(task) end)
+      # extract text content from each tweet, joining in a single multiline string
       |> Enum.map(fn(tweets) ->
-        tweets |> Enum.map_join("\n", fn(tweet) ->
-          IO.inspect(tweet)
-          tweet.text
-        end)
+        tweets |> Enum.map_join("\n", fn(tweet) -> tweet.text end)
       end)
 
+      # create a range from 0 to length of newsList minus 1
       0..(length(newsList) - 1)
+        # zip newsList with indexes, creating a new indexed map of tweets (0: "a tweet", 1: "another tweet", ...)
         |> Stream.zip(newsList)
+        # for each indexed tweet, fetch the corresponding interest so it can be entitled with that
         |> Enum.map_join("\n", fn({k, v}) ->
           interest = Enum.at(state, k)
-          "\n\nnews from " <> interest <> "\n\n" <> v
+          "\n\nnews from #{interest}\n\n#{v}"
         end)
   end
 end
