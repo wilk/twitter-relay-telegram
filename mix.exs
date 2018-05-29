@@ -23,7 +23,8 @@ defmodule TweetRelay.MixProject do
   defp deps do
     [
       {:extwitter, "~> 0.9.2"},
-      {:nadia, "~> 0.4.3"}
+      {:nadia, "~> 0.4.3"},
+      {:distillery, "~> 1.5", runtime: false}
     ]
   end
 end
