@@ -56,6 +56,13 @@ defmodule TweetRelay do
 
       # cond is a set of "if" statements grouped together
       state = cond do
+        command.message.text === "/keyboard" ->
+          Nadia.send_message(command.message.chat.id, "Choose a choice", [{:reply_markup, %Nadia.Model.ReplyKeyboardMarkup{
+            keyboard: [
+              [%Nadia.Model.InlineKeyboardButton{callback_data: "/help", switch_inline_query: "/choose", text: "Choose"}]
+            ]
+          }}])
+          state
         # /help check
         command.message.text === "/help" ->
           Nadia.send_message(command.message.chat.id, """
@@ -138,7 +145,7 @@ defmodule TweetRelay do
 
     state -- existing
   end
-
+  
   defp get_digest(state) do
     newsList = state
       # generate an array of tasks, one for each followed interest
